@@ -73,13 +73,14 @@ class EstabelecimentoBase(BaseModel):
         return v
 
 class EstabelecimentoCreate(EstabelecimentoBase):
-    pass
+    mantenedora_id: int
 
 class EstabelecimentoUpdate(EstabelecimentoBase):
-    pass
+    mantenedora_id: int
 
 class Estabelecimento(EstabelecimentoBase):
     id: int
+    mantenedora_id: int
     endereco: Endereco | None = None
 
     class Config:

@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic, Type, Union
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.base import BaseModel
@@ -32,19 +32,30 @@ class BaseRepository(Generic[ModelType]):
             await self.session.rollback()
             raise
 
-    async def update(self, id: int, data: dict) -> ModelType | None:
+    async def update(self, entity: Union[ModelType, int], data: dict) -> ModelType | None:
         try:
+            entity_id = entity if isinstance(entity, int) else entity.id
             query = update(self.model).where(
-                self.model.id == id
+                self.model.id == entity_id
             ).values(**data).returning(self.model)
             result = await self.session.execute(query)
-            await self.session.flush()
-            return result.scalar_one_or_none()
+            updated = result.scalar_one_or_none()
+            if updated:
+                await self.session.commit()
+            return updated
         except Exception:
             await self.session.rollback()
             raise
 
-    async def delete(self, id: int) -> bool:
-        query = delete(self.model).where(self.model.id == id)
-        result = await self.session.execute(query)
-        return result.rowcount > 0
+    async def delete(self, entity: Union[ModelType, int]) -> bool:
+        try:
+            entity_id = entity if isinstance(entity, int) else entity.id
+            query = delete(self.model).where(self.model.id == entity_id)
+            result = await self.session.execute(query)
+            if result.rowcount > 0:
+                await self.session.commit()
+                return True
+            return False
+        except Exception:
+            await self.session.rollback()
+            raise
