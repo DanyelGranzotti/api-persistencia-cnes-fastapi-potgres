@@ -17,7 +17,7 @@ async def listar_estabelecimentos(
 ) -> List[Estabelecimento]:
 
     repository = EstabelecimentoRepository(db)
-    return await repository.get_all()
+    return await repository.get_all_with_endereco()
 
 @router.get("/{id}", response_model=Estabelecimento)
 async def obter_estabelecimento(
@@ -26,7 +26,7 @@ async def obter_estabelecimento(
 ) -> Estabelecimento:
 
     repository = EstabelecimentoRepository(db)
-    estabelecimento = await repository.get_by_id(id)
+    estabelecimento = await repository.get_by_id_with_endereco(id)
     if not estabelecimento:
         raise HTTPException(
             status_code=404, 

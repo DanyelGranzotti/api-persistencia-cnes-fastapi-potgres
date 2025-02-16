@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
+from schemas.endereco import Endereco
 import re
 
 class EstabelecimentoBase(BaseModel):
@@ -79,6 +80,7 @@ class EstabelecimentoUpdate(EstabelecimentoBase):
 
 class Estabelecimento(EstabelecimentoBase):
     id: int
+    endereco: Endereco | None = None
 
     class Config:
         from_attributes = True

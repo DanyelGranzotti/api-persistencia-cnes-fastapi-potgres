@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Integer
+from sqlalchemy.orm import relationship
 from models.base import BaseModel
 
 class Estabelecimento(BaseModel):
@@ -11,3 +12,4 @@ class Estabelecimento(BaseModel):
     nome_fantasia_estabelecimento = Column(String(255), nullable=False)
     numero_telefone_estabelecimento = Column(String(20))
     email_estabelecimento = Column(String(255))
+    endereco = relationship("Endereco", back_populates="estabelecimento", uselist=False)
