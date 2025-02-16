@@ -22,8 +22,8 @@ API REST para gerenciamento de dados do Cadastro Nacional de Estabelecimentos de
 
 1. Clone e configure o projeto:
 ```bash
-git clone <repositório>
-cd persistencia
+git clone https://github.com/DanyelGranzotti/api-persistencia-cnes-fastapi-potgres.git
+cd api-persistencia-cnes-fastapi-potgres
 pip install -r requirements.txt
 ```
 
