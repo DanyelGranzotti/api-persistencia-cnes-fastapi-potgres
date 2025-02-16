@@ -27,15 +27,10 @@ async def get_db() -> AsyncSession:
 
 async def init_models():
     try:
-        # Import here to avoid circular imports
+        # Ensure database exists first
         from scripts.create_database import create_database
-        
-        # Ensure database exists
         await create_database()
-        
-        # Continue with existing initialization
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        print("Database initialized - use Alembic migrations to manage schema")
     except Exception as e:
         print(f"Error initializing models: {e}")
         raise

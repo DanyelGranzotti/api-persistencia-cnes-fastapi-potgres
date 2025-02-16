@@ -2,7 +2,6 @@ import os
 import sys
 from logging.config import fileConfig
 
-# Add the parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from sqlalchemy import engine_from_config
@@ -11,11 +10,16 @@ from alembic import context
 from core.config import settings
 from core.database import Base
 
+# Certifique-se de importar todos os modelos aqui
+from models import estabelecimento, endereco
+
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+# Sobrescreva a URL do banco de dados
 config.set_main_option("sqlalchemy.url", settings.SYNC_DATABASE_URL)
 
 def run_migrations_offline() -> None:
