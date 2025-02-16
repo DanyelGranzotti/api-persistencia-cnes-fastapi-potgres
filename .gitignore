@@ -1,0 +1,40 @@
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+*.so
+.Python
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+python-env/
+
+# Distribution / packaging
+dist/
+build/
+*.egg
+*.egg-info/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Local development settings
+*.log
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
