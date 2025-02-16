@@ -1,36 +1,54 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
+from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 from core.config import settings
 
-# Async engine for normal operations
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+# Create async engine
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=settings.DB_ECHO_LOG,
+    future=True
+)
 
-# Sync engine for migrations and schema generation
-sync_engine = create_engine(settings.SYNC_DATABASE_URL, echo=True)
+# Create session factory
+async_session = sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
+# Create base model
 Base = declarative_base()
+
+async def init_models():
+    async with engine.begin() as conn:
+        # await conn.run_sync(Base.metadata.drop_all)  # Uncomment to reset database
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+# For script usage
+async def get_direct_session() -> AsyncSession:
+    return async_session()
 
 async def get_db() -> AsyncSession:
     async with async_session() as session:
         try:
             yield session
             await session.commit()
-        except Exception as e:
+        except Exception:
             await session.rollback()
-            print(f"Database error: {str(e)}")  # Add logging for debugging
             raise
         finally:
             await session.close()
-
-async def init_models():
-    try:
-        # Ensure database exists first
-        from scripts.create_database import create_database
-        await create_database()
-        print("Database initialized - use Alembic migrations to manage schema")
-    except Exception as e:
-        print(f"Error initializing models: {e}")
-        raise

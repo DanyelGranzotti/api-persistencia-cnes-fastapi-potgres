@@ -58,10 +58,21 @@ class EstabelecimentoBase(BaseModel):
     def validate_telefone(cls, v):
         if v is None:
             return v
-        telefone_pattern = re.compile(r'^\(\d{2}\)\s\d{4,5}-\d{4}$')
-        if not telefone_pattern.match(v):
-            raise ValueError('Formato de telefone inválido. Use: (XX) XXXX-XXXX ou (XX) XXXXX-XXXX')
-        return v
+        # Remove any non-digit characters
+        digits = ''.join(filter(str.isdigit, v))
+        # Check if we have 10 or 11 digits (with area code)
+        if len(digits) not in [10, 11]:
+            raise ValueError('Telefone deve ter 10 ou 11 dígitos incluindo DDD')
+        
+        # Format the number to the standard format
+        ddd = digits[:2]
+        if len(digits) == 11:  # Mobile number
+            number = f'{digits[2:7]}-{digits[7:]}'
+        else:  # Landline
+            number = f'{digits[2:6]}-{digits[6:]}'
+        
+        formatted = f'({ddd}) {number}'
+        return formatted
 
     @field_validator('email_estabelecimento')
     def validate_email(cls, v):

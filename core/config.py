@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: str = "5432"
     POSTGRES_DB: str = "cnes"
+    DB_ECHO_LOG: bool = True
     
     @property
     def DATABASE_URL(self) -> str:

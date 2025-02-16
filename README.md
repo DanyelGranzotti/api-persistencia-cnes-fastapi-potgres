@@ -57,3 +57,4 @@ alembic revision --autogenerate -m "descrição"
 alembic upgrade head
 ```
 
+ python -m scripts.CNES.populate_db

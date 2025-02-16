@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from repositories.base import BaseRepository
 from models.estabelecimento import Estabelecimento
+from models.mantenedora import Mantenedora
 
 class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
     def __init__(self, session):
@@ -11,8 +12,33 @@ class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
 
     async def create(self, data: dict) -> Estabelecimento:
         try:
+            # Get mantenedora_id from cnpj
+            if 'cnpj_mantenedora' in data:
+                query = select(Mantenedora.id).where(
+                    Mantenedora.cnpj_mantenedora == data['cnpj_mantenedora']
+                )
+                result = await self.session.execute(query)
+                mantenedora_id = result.scalar_one_or_none()
+                
+                if not mantenedora_id:
+                    raise HTTPException(status_code=400, detail="Mantenedora não encontrada")
+                
+                # Keep both cnpj and id
+                estabelecimento_data = {
+                    "codigo_unidade": data["codigo_unidade"],
+                    "codigo_cnes": data["codigo_cnes"],
+                    "cnpj_mantenedora": data["cnpj_mantenedora"],  # Keep the CNPJ
+                    "nome_razao_social_estabelecimento": data["nome_razao_social_estabelecimento"],
+                    "nome_fantasia_estabelecimento": data["nome_fantasia_estabelecimento"],
+                    "numero_telefone_estabelecimento": data["numero_telefone_estabelecimento"],
+                    "email_estabelecimento": data["email_estabelecimento"],
+                    "mantenedora_id": mantenedora_id
+                }
+            else:
+                estabelecimento_data = data
+
             # Create entity
-            entity = self.model(**data)
+            entity = self.model(**estabelecimento_data)
             self.session.add(entity)
             await self.session.flush()
             await self.session.refresh(entity)
@@ -26,11 +52,15 @@ class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
             
         except IntegrityError as e:
             await self.session.rollback()
+            print(f"IntegrityError: {str(e)}")  # Add debug print
             if 'estabelecimentos_codigo_unidade_key' in str(e):
                 raise HTTPException(status_code=400, detail="Código da unidade já existe")
             if 'estabelecimentos_codigo_cnes_key' in str(e):
                 raise HTTPException(status_code=400, detail="Código CNES já existe")
-            raise HTTPException(status_code=400, detail="Erro ao criar estabelecimento")
+            raise HTTPException(status_code=400, detail=f"Erro ao criar estabelecimento: {str(e)}")
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")  # Add debug print
+            raise HTTPException(status_code=400, detail=f"Erro inesperado: {str(e)}")
 
     async def update(self, id: int, data: dict) -> Estabelecimento | None:
         try:
