@@ -42,6 +42,16 @@ alembic upgrade head
 uvicorn main:app --reload
 ```
 
+### População do Banco de Dados
+
+Para popular o banco de dados com dados iniciais do CNES, execute:
+
+```bash
+python -m scripts.CNES.populate_db
+```
+
+> **Nota**: Este processo pode levar alguns minutos dependendo do volume de dados.
+
 ## Documentação da API
 - Swagger UI: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
