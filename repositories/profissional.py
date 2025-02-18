@@ -1,15 +1,14 @@
 from sqlalchemy import select, update
-from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from repositories.base import BaseRepository
-from models.mantenedora import Mantenedora
+from models.profissional import Profissional
 
-class MantenedoraRepository(BaseRepository[Mantenedora]):
+class ProfissionalRepository(BaseRepository[Profissional]):
     def __init__(self, session):
-        super().__init__(session, Mantenedora)
+        super().__init__(session, Profissional)
 
-    async def create(self, data: dict) -> Mantenedora:
+    async def create(self, data: dict) -> Profissional:
         try:
             entity = self.model(**data)
             self.session.add(entity)
@@ -18,30 +17,30 @@ class MantenedoraRepository(BaseRepository[Mantenedora]):
             return entity
         except IntegrityError as e:
             await self.session.rollback()
-            if 'mantenedoras_cnpj_mantenedora_key' in str(e):
-                raise HTTPException(status_code=400, detail="CNPJ já cadastrado")
-            raise HTTPException(status_code=400, detail="Erro ao criar mantenedora")
+            if 'profissionais_codigo_profissional_sus_key' in str(e):
+                raise HTTPException(status_code=400, detail="Código do profissional SUS já cadastrado")
+            raise HTTPException(status_code=400, detail="Erro ao criar profissional")
 
-    async def get_all(self) -> list[Mantenedora]:
-        query = select(self.model).options(selectinload(self.model.estabelecimentos))
+    async def get_all(self) -> list[Profissional]:
+        query = select(self.model)
         result = await self.session.execute(query)
         return list(result.scalars().all())
     
-    async def get_by_id(self, id: int) -> Mantenedora:
+    async def get_by_id(self, id: int) -> Profissional:
         query = select(self.model).where(self.model.id == id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
     
-    async def update(self, id: int, data: dict) -> Mantenedora:
+    async def update(self, id: int, data: dict) -> Profissional:
         try:
             query = update(self.model).where(self.model.id == id).values(**data).returning(self.model)
             result = await self.session.execute(query)
             return result.scalar_one_or_none()
         except IntegrityError as e:
             await self.session.rollback()
-            if 'mantenedoras_cnpj_mantenedora_key' in str(e):
-                raise HTTPException(status_code=400, detail="CNPJ já cadastrado")
-            raise HTTPException(status_code=400, detail="Erro ao atualizar mantenedora")
+            if 'profissionais_codigo_profissional_sus_key' in str(e):
+                raise HTTPException(status_code=400, detail="Código do profissional SUS já cadastrado")
+            raise HTTPException(status_code=400, detail="Erro ao atualizar profissional")
     
     async def delete(self, id: int):
         query = self.model.__table__.delete().where(self.model.id == id)

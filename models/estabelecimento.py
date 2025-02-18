@@ -18,3 +18,4 @@ class Estabelecimento(BaseModel):
     
     mantenedora = relationship("Mantenedora", back_populates="estabelecimentos")
     endereco = relationship("Endereco", back_populates="estabelecimento", uselist=False)
+    equipe = relationship("Equipe", back_populates="estabelecimento", uselist=False)
