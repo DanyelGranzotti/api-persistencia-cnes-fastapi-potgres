@@ -1,5 +1,4 @@
-from sqlalchemy import select, update
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from models.equipe import Equipe

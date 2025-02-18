@@ -9,7 +9,6 @@ class Profissional(BaseModel):
     nome_profissional = Column(String, nullable=False)
     codido_cns = Column(String, nullable=False)
     situacao_profissional_cadsus = Column(String, nullable=False)
-    data_cadastro_profissional = Column(DateTime, nullable=False)
 
     equipes = relationship("Equipe", secondary="equipeprofs", back_populates="profissionais")
 

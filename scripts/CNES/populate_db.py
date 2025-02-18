@@ -3,12 +3,14 @@ import asyncio
 from datetime import datetime
 from typing import Dict, List
 import os
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from core.database import get_direct_session, init_models
+from repositories.equipe import EquipeRepository
+from repositories.equipeprofs import EquipeProfRepository
 from repositories.mantenedora import MantenedoraRepository
 from repositories.estabelecimento import EstabelecimentoRepository
 from repositories.endereco import EnderecoRepository
+from repositories.profissional import ProfissionalRepository
 
 def read_csv_file(file_path: str) -> List[Dict]:
     encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
@@ -109,12 +111,55 @@ async def create_estabelecimento_with_endereco(
         print(f"Error processing estabelecimento: {str(e)}")
         return None
 
+async def create_equipe(eqipe_repo: EquipeRepository, data: Dict) -> Dict:
+    try:
+        equipe = {
+            "codigo_equipe": data["SEQ_EQUIPE"],
+            "nome_equipe": data["NO_EQUIPE"],
+            "tipo_equipe": data["TP_EQUIPE"],
+            "codigo_unidade": data["CO_UNIDADE"]
+        }
+
+        return await eqipe_repo.create(equipe)
+    except Exception as e:
+        print(f"Error creating equipe: {str(e)}")
+        return None
+
+async def create_profissional(profRepo: ProfissionalRepository, data: Dict) -> Dict:
+    try:
+        profissional = {
+            "codigo_profissional_sus": data["CO_PROFISSIONAL_SUS"],
+            "nome_profissional": data["NO_PROFISSIONAL"],
+            "codido_cns": data["CO_CNS"],
+            "situacao_profissional_cadsus": data["ST_NMPROF_CADSUS"],
+        }
+
+        return await profRepo.create(profissional)
+    except Exception as e:
+        print(f"Error creating profissional: {str(e)}")
+        return None
+
+async def create_equipe_profissional(repo: EquipeProfRepository, data: Dict) -> Dict:
+    try:
+        equipe_profissional = {
+            "codigo_equipe": data["SEQ_EQUIPE"],
+            "codigo_profissional_sus": data["CO_PROFISSIONAL_SUS"]
+        }
+
+        return await repo.create(equipe_profissional)
+    except Exception as e:
+        print(f"Error creating equipe profissional: {str(e)}")
+        return None
+
 async def main():
     await init_models()
     
     current_dir = os.path.dirname(os.path.abspath(__file__))
     mantenedoras = read_csv_file(os.path.join(current_dir, 'tbMantenedora202501.csv'))
     estabelecimentos = read_csv_file(os.path.join(current_dir, 'tbEstabelecimento202501.csv'))
+    equipes = read_csv_file(os.path.join(current_dir, 'tbEquipe.csv'))
+    profissionais = read_csv_file(os.path.join(current_dir, 'tbProf.csv'))
+    equipeprofs = read_csv_file(os.path.join(current_dir, 'tbEquipeProf.csv'))
 
     async with await get_direct_session() as session:
         mant_repo = MantenedoraRepository(session)
@@ -133,6 +178,15 @@ async def main():
                 
             await create_estabelecimento_with_endereco(estab_repo, end_repo, estab, mant)
         
+        for equipe in equipes:
+            await create_equipe(EquipeRepository(session), equipe)
+        
+        for prof in profissionais:
+            await create_profissional(ProfissionalRepository(session), prof)
+        
+        for eqprof in equipeprofs:
+            await create_equipe_profissional(EquipeProfRepository(session), eqprof)
+
         await session.commit()
 
 if __name__ == "__main__":
