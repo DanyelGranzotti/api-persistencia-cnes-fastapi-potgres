@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 
-from models.equipe import Equipe
+from schemas.equipe import Equipe
 from repositories.equipe import EquipeRepository
 
 router = APIRouter(

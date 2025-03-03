@@ -42,7 +42,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def get_direct_session() -> AsyncSession:
     return async_session()
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         try:
             yield session

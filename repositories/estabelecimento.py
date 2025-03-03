@@ -87,6 +87,7 @@ class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
     async def get_all_with_endereco(self) -> list[Estabelecimento]:
         query = select(self.model).options(selectinload(self.model.endereco))
         result = await self.session.execute(query)
+        print(result.scalars().unique())
         return list(result.scalars().unique())
     
     async def get_by_id_with_endereco(self, id: int) -> Estabelecimento | None:

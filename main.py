@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.database import get_db, init_models, engine, Base
-from routers import estabelecimento, endereco, mantenedora
+from routers import equipe, estabelecimento, endereco, mantenedora, profissional
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,3 +31,5 @@ async def healthcheck(db=Depends(get_db)):
 app.include_router(estabelecimento.router)
 app.include_router(endereco.router)
 app.include_router(mantenedora.router)
+app.include_router(equipe.router)
+app.include_router(profissional.router)

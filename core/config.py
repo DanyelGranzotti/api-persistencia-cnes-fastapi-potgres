@@ -5,10 +5,10 @@ class Settings(BaseSettings):
     PROJECT_VERSION: str = "1.0.0"
     
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_PASSWORD: str = "1234"
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: str = "5432"
-    POSTGRES_DB: str = ""
+    POSTGRES_DB: str = "postgres"
     DB_ECHO_LOG: bool = True
     
     @property

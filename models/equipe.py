@@ -1,6 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from models.base import BaseModel
+from models.equipeprof import EquipeProf
 
 class Equipe(BaseModel):
     __tablename__ = "equipes"
