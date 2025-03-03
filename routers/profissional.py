@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 
-from models.profissional import Profissional
+from schemas.profissional import Profissional
 from repositories.profissional import ProfissionalRepository
 
 
