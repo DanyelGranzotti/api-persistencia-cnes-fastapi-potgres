@@ -12,5 +12,5 @@ class Equipe(BaseModel):
     codigo_unidade = Column(String, nullable=False)
     estabelecimento_id = Column(Integer, ForeignKey("estabelecimentos.id", ondelete="CASCADE"), nullable=False)
 
-    profissionais = relationship("Profissional", secondary="equipeprofs", back_populates="equipes")
+    profissionais = relationship("Profissional", secondary="equipeprofs", back_populates="equipes", cascade="all", passive_deletes=True, lazy='selectin')
     estabelecimento = relationship("Estabelecimento", back_populates="equipe")

@@ -60,3 +60,17 @@ async def deletar_equipe(
         raise HTTPException(status_code=404, detail="Equipe não encontrada")
     await repository.delete(id)
     return
+
+@router.get("/{id}/profissionais", response_model=Equipe)
+async def obter_equipe_com_profissionais(
+    id: int,
+    db: AsyncSession = Depends(get_db)
+) -> Equipe:
+    repository = EquipeRepository(db)
+    equipe = await repository.get_with_profissionais(id)
+    print("\n")
+    print(equipe)
+    print("===================================\n")
+    if not equipe:
+        raise HTTPException(status_code=404, detail="Equipe não encontrada")
+    return equipe
