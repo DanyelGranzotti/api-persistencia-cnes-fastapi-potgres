@@ -13,7 +13,7 @@ class EquipeRepository(BaseRepository[Equipe]):
     async def create(self, data: dict) -> Equipe:
         try:
             query = select(Estabelecimento.id).where(
-                    Estabelecimento.codigo_unidade == data['codigo_unidade']
+                    Estabelecimento.codigo_unidade == str(data['codigo_unidade'])
                 )
             result = await self.session.execute(query)
             estabelecimento_id = result.scalar_one_or_none()
@@ -23,10 +23,14 @@ class EquipeRepository(BaseRepository[Equipe]):
                     detail="Estabelecimento não encontrado"
                 )
             data['estabelecimento_id'] = estabelecimento_id
-            return await super().create(data)
+            entity = self.model(**data)
+            self.session.add(entity)
+            await self.session.flush()
+            await self.session.refresh(entity)
+            return entity
         except IntegrityError as e:
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="Erro ao criar equipe")
+            raise HTTPException(status_code=400, detail=e)
     
     async def get_all(self) -> list[Equipe]:
         query = select(self.model)
@@ -45,8 +49,9 @@ class EquipeRepository(BaseRepository[Equipe]):
             raise
     
     async def get_with_profissionais(self, id: int) -> Equipe:
-        query = select(self.model).options(selectinload(self.model.profissionais)).where(self.model.id == id)
+        query = select(Equipe).options(selectinload(Equipe.profissionais)).where(Equipe.id == id)
         result = await self.session.execute(query)
+        print(result)
         return result.scalar_one_or_none()
     
     async def get_by_profissional_id(self, profissional_id: int) -> Equipe | None:

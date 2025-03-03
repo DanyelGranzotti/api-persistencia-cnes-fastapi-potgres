@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from schemas.profissional import Profissional
+
 class EquipeBase(BaseModel):
     codigo_equipe: str = Field(
         example="123456",
@@ -39,5 +41,10 @@ class Equipe(EquipeBase):
         description="ID da equipe"
     )
 
+    profissionais: list[Profissional] = Field(
+        example=[],
+        description="Lista de profissionais da equipe"
+    )
+
     class Config:
-        orm_mode = True
+        from_attributes = True

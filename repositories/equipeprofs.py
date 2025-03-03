@@ -34,10 +34,17 @@ class EquipeProfRepository(BaseRepository[EquipeProf]):
                     detail="Equipe não encontrada"
                 )
             data['equipe_id'] = equipe_id
-            return await super().create(data)
+
+            data.pop('codigo_equipe')
+            data.pop('codigo_profissional_sus')
+            entity = self.model(**data)
+            self.session.add(entity)
+            await self.session.flush()
+            await self.session.refresh(self.model)
+            return entity
         except IntegrityError as e:
             await self.session.rollback()
-            raise HTTPException(status_code=400, detail="Erro ao criar equipe profissional")
+            raise HTTPException(status_code=400, detail=e)
     
     async def get_all(self) -> list[EquipeProf]:
         query = select(self.model)
