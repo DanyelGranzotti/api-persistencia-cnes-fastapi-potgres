@@ -112,3 +112,25 @@ async def filtrar_enderecos(
     if bairro:
         filters["bairro"] = bairro
     return await repository.get_all(filters)
+
+@router.get("/paginated", response_model=List[Endereco])
+async def listar_enderecos_paginados(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EnderecoRepository(db)
+    total = await repository.count()
+    enderecos = await repository.get_paginated(limit=limit, offset=page * limit)
+    current_page = (page // limit) + 1
+    total_pages = (total // limit) + 1
+    return {
+        "data": enderecos,
+        "pagination": {
+            "total_pages": total_pages,
+            "current_page": current_page,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }

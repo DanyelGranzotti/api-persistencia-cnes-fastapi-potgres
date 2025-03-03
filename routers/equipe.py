@@ -77,3 +77,25 @@ async def filtrar_equipes(
     if tipo_equipe:
         filters["tipo_equipe"] = tipo_equipe
     return await repository.get_all(filters)
+
+@router.get("/paginated", response_model=List[Equipe])
+async def listar_equipes_paginadas(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeRepository(db)
+    total = await repository.count()
+    equipes = await repository.get_paginated(limit=limit, offset=page * limit)
+    current_page = (page // limit) + 1
+    total_pages = (total // limit) + 1 
+    return {
+        "data": equipes,
+        "pagination": {
+            "total_pages": total_pages,
+            "current_page": current_page,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }

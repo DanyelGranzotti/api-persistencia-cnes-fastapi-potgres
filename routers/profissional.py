@@ -78,3 +78,25 @@ async def filtrar_profissionais(
     if codigo_cns:
         filters["codigo_cns"] = codigo_cns
     return await repository.get_all(filters)
+
+@router.get("/paginated", response_model=List[Profissional])
+async def listar_profissionais_paginados(
+    page: int = Query(1),
+    limit: int = Query(10),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = ProfissionalRepository(db)
+    total = await repository.count()
+    profissionais = await repository.get_paginated(limit=limit, offset=page * limit)
+    current_page = (page // limit) + 1
+    total_pages = (page // limit) + 1
+    return {
+        "data": profissionais,
+        "pagination": {
+            "total_pages": total_pages,
+            "current_page": current_page,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }

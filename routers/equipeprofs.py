@@ -74,3 +74,25 @@ async def filtrar_equipeprofs(
     if profissional_id:
         filters["profissional_id"] = profissional_id
     return await repository.get_all(filters)
+
+@router.get("/paginated", response_model=List[EquipeProf])
+async def listar_equipeprofs_paginados(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeProfRepository(db)
+    total = await repository.count()
+    equipeprofs = await repository.get_paginated(limit=limit, offset=page * limit)
+    current_page = (page // limit) + 1
+    total_pages = (total // limit) + 1
+    return {
+        "data": equipeprofs,
+        "pagination": {
+            "total_pages": total_pages,
+            "current_page": current_page,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }
