@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 
@@ -60,3 +60,17 @@ async def deletar_equipeprof(
         raise HTTPException(status_code=404, detail="EquipeProf não encontrada")
     await repository.delete(id)
     return
+
+@router.get("/filtro", response_model=List[EquipeProf])
+async def filtrar_equipeprofs(
+    equipe_id: int = Query(None),
+    profissional_id: int = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeProfRepository(db)
+    filters = {}
+    if equipe_id:
+        filters["equipe_id"] = equipe_id
+    if profissional_id:
+        filters["profissional_id"] = profissional_id
+    return await repository.get_all(filters)

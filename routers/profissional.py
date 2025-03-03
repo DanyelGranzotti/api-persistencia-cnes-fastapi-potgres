@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 
@@ -61,3 +61,20 @@ async def deletar_endereco(
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     await repository
     return
+
+@router.get("/filtro", response_model=List[Profissional])
+async def filtrar_profissionais(
+    codigo_profissional_sus: str = Query(None),
+    nome_profissional: str = Query(None),
+    codigo_cns: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = ProfissionalRepository(db)
+    filters = {}
+    if codigo_profissional_sus:
+        filters["codigo_profissional_sus"] = codigo_profissional_sus
+    if nome_profissional:
+        filters["nome_profissional"] = nome_profissional
+    if codigo_cns:
+        filters["codigo_cns"] = codigo_cns
+    return await repository.get_all(filters)

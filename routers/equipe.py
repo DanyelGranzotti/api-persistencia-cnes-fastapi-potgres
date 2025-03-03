@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
 
@@ -74,3 +74,20 @@ async def obter_equipe_com_profissionais(
     if not equipe:
         raise HTTPException(status_code=404, detail="Equipe não encontrada")
     return equipe
+
+@router.get("/filtro", response_model=List[Equipe])
+async def filtrar_equipes(
+    codigo_equipe: str = Query(None),
+    nome_equipe: str = Query(None),
+    tipo_equipe: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeRepository(db)
+    filters = {}
+    if codigo_equipe:
+        filters["codigo_equipe"] = codigo_equipe
+    if nome_equipe:
+        filters["nome_equipe"] = nome_equipe
+    if tipo_equipe:
+        filters["tipo_equipe"] = tipo_equipe
+    return await repository.get_all(filters)
