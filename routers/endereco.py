@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from core.database import get_db
@@ -95,3 +95,20 @@ async def deletar_endereco(
     if not success:
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     return {"message": "Endereço deletado com sucesso"}
+
+@router.get("/filtro", response_model=List[Endereco])
+async def filtrar_enderecos(
+    estabelecimento_id: int = Query(None),
+    cep_estabelecimento: str = Query(None),
+    bairro: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EnderecoRepository(db)
+    filters = {}
+    if estabelecimento_id:
+        filters["estalecimento_id"] = estabelecimento_id
+    if cep_estabelecimento:
+        filters["cep_estabelecimento"] = cep_estabelecimento
+    if bairro:
+        filters["bairro"] = bairro
+    return await repository.get_all(filters)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from core.database import get_db
@@ -59,3 +59,17 @@ async def deletar_mantenedora(
         raise HTTPException(status_code=404, detail="Mantenedora não encontrada")
     await repository.delete(id)
     return
+
+@router.get("/filtro", response_model=List[Mantenedora])
+async def filtrar_mantenedoras(
+    cnpj_mantenedora: str = Query(None),
+    nome_razao_social_mantenedora: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = MantenedoraRepository(db)
+    filters = {}
+    if cnpj_mantenedora:
+        filters["cnpj_mantenedora"] = cnpj_mantenedora
+    if nome_razao_social_mantenedora:
+        filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
+    return await repository.get_all(filters)
