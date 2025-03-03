@@ -8,8 +8,8 @@ from repositories.profissional import ProfissionalRepository
 
 
 router = APIRouter(
-    prefix="/enderecos",
-    tags=["enderecos"]
+    prefix="/profissionais",
+    tags=["profissionais"]
 )
 
 @router.get("/", response_model=List[Profissional])
