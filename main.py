@@ -31,5 +31,5 @@ async def healthcheck(db=Depends(get_db)):
 app.include_router(estabelecimento.router)
 app.include_router(endereco.router)
 app.include_router(mantenedora.router)
-#app.include_router(equipe.router)
-#app.include_router(profissional.router)
+app.include_router(equipe.router)
+app.include_router(profissional.router)
