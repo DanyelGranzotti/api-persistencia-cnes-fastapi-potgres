@@ -6,7 +6,7 @@ class EstabelecimentoBase(BaseModel):
     codigo_unidade: str = Field(
         example="123456",
         min_length=1,
-        max_length=20,
+        max_length=25,
         description="Código único da unidade"
     )
     codigo_cnes: str = Field(
@@ -17,8 +17,8 @@ class EstabelecimentoBase(BaseModel):
     )
     cnpj_mantenedora: str = Field(
         example="12345678901234",
-        min_length=14,
-        max_length=14,
+        min_length=1,
+        max_length=30,
         description="CNPJ da mantenedora"
     )
     nome_razao_social_estabelecimento: str = Field(
@@ -45,43 +45,6 @@ class EstabelecimentoBase(BaseModel):
         max_length=255,
         description="Email do estabelecimento"
     )
-
-    @field_validator('cnpj_mantenedora')
-    def validate_cnpj(cls, v):
-        if not v.isdigit():
-            raise ValueError('CNPJ deve conter apenas números')
-        if len(v) != 14:
-            raise ValueError('CNPJ deve ter 14 dígitos')
-        return v
-
-    @field_validator('numero_telefone_estabelecimento')
-    def validate_telefone(cls, v):
-        if v is None:
-            return v
-        # Remove any non-digit characters
-        digits = ''.join(filter(str.isdigit, v))
-        # Check if we have 10 or 11 digits (with area code)
-        if len(digits) not in [10, 11]:
-            raise ValueError('Telefone deve ter 10 ou 11 dígitos incluindo DDD')
-        
-        # Format the number to the standard format
-        ddd = digits[:2]
-        if len(digits) == 11:  # Mobile number
-            number = f'{digits[2:7]}-{digits[7:]}'
-        else:  # Landline
-            number = f'{digits[2:6]}-{digits[6:]}'
-        
-        formatted = f'({ddd}) {number}'
-        return formatted
-
-    @field_validator('email_estabelecimento')
-    def validate_email(cls, v):
-        if v is None:
-            return v
-        email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-        if not email_pattern.match(v):
-            raise ValueError('Email inválido')
-        return v
 
 class EstabelecimentoCreate(EstabelecimentoBase):
     mantenedora_id: int
