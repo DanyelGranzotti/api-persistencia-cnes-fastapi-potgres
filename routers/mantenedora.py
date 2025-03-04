@@ -19,19 +19,20 @@ async def listar_mantenedoras(
     logging.info("Listando mantenedoras")
     return await repository.get_all()
 
-@router.get("/filtro", response_model=List[Mantenedora])
+@router.get("/filtro")
 async def filtrar_mantenedoras(
     cnpj_mantenedora: str = Query(None),
     nome_razao_social_mantenedora: str = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> List[Mantenedora]:
+) -> dict:
     repository = MantenedoraRepository(db)
     filters = {}
     if cnpj_mantenedora:
         filters["cnpj_mantenedora"] = cnpj_mantenedora
     if nome_razao_social_mantenedora:
         filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
-    return await repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    return {"res":[[str(key)+": "+str(value) for key, value in mantenedora.__dict__.items() if (not key.startswith("_"))] for mantenedora in res]}
 
 @router.get("/paginated")
 async def listar_mantenedoras_paginadas(

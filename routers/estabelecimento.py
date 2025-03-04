@@ -21,8 +21,6 @@ async def listar_estabelecimentos(
     logging.info("Listando estabelecimentos")
     return await repository.get_all_with_endereco()
 
-
-
 @router.get("/filtro")
 async def filtrar_estabelecimentos(
     codigo_unidade: str = Query(None),
@@ -39,7 +37,6 @@ async def filtrar_estabelecimentos(
     if nome_fantasia_estabelecimento:
         filters["nome_fantasia_estabelecimento"] = nome_fantasia_estabelecimento
     res = await repository.get_by_filters(filters)
-    print(res,"\n\n")
     return {"res":[[str(key)+": "+str(value) for key, value in estabelecimento.__dict__.items() if (not key.startswith("_"))] for estabelecimento in res]}
     
 

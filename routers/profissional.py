@@ -20,13 +20,13 @@ async def listar_enderecos(
     logging.info("Listando todos os endereços")
     return await repository.get_all()
 
-@router.get("/filtro", response_model=List[Profissional])
+@router.get("/filtro")
 async def filtrar_profissionais(
     codigo_profissional_sus: str = Query(None),
     nome_profissional: str = Query(None),
     codigo_cns: str = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> List[Profissional]:
+) -> dict:
     repository = ProfissionalRepository(db)
     filters = {}
     if codigo_profissional_sus:
@@ -35,7 +35,8 @@ async def filtrar_profissionais(
         filters["nome_profissional"] = nome_profissional
     if codigo_cns:
         filters["codigo_cns"] = codigo_cns
-    return await repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    return {"res":[[str(key)+": "+str(value) for key, value in profissional.__dict__.items() if (not key.startswith("_"))] for profissional in res]}
 
 @router.get("/paginated", response_model=dict)
 async def listar_profissionais_paginados(

@@ -20,22 +20,23 @@ async def listar_enderecos(
     logging.info("Listando enderecos")
     return await repository.get_all()
 
-@router.get("/filtro", response_model=List[Endereco])
+@router.get("/filtro")
 async def filtrar_enderecos(
     estabelecimento_id: int = Query(None),
     cep_estabelecimento: str = Query(None),
     bairro: str = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> List[Endereco]:
+) -> dict:
     repository = EnderecoRepository(db)
     filters = {}
     if estabelecimento_id:
-        filters["estalecimento_id"] = estabelecimento_id
+        filters["estabelecimento_id"] = estabelecimento_id
     if cep_estabelecimento:
         filters["cep_estabelecimento"] = cep_estabelecimento
     if bairro:
         filters["bairro"] = bairro
-    return await repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    return {"res":[[str(key)+": "+str(value) for key, value in endereco.__dict__.items() if (not key.startswith("_"))] for endereco in res]}
 
 @router.get("/paginated")
 async def listar_enderecos_paginados(

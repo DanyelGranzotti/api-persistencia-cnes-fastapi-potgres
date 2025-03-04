@@ -20,19 +20,20 @@ async def listar_equipeprofs(
     logging.info("Listando equipeprofs")
     return await repository.get_all()
 
-@router.get("/filtro", response_model=EquipeProf)
+@router.get("/filtro")
 async def filtrar_equipeprofs(
     equipe_id: int = Query(None),
     profissional_id: int = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> EquipeProf:
+) -> dict:
     repository = EquipeProfRepository(db)
     filters = {}
     if equipe_id:
         filters["equipe_id"] = equipe_id
     if profissional_id:
         filters["profissional_id"] = profissional_id
-    return await repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    return {"res":[[str(key)+": "+str(value) for key, value in equipeprof.__dict__.items() if (not key.startswith("_"))] for equipeprof in res]}
 
 @router.get("/paginated")
 async def listar_equipeprofs_paginados(

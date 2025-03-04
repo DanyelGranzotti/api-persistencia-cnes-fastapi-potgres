@@ -20,13 +20,13 @@ async def listar_equipes(
     logging.info("Listando equipes")
     return await repository.get_all()
 
-@router.get("/filtro", response_model=List[Equipe])
+@router.get("/filtro")
 async def filtrar_equipes(
     codigo_equipe: str = Query(None),
     nome_equipe: str = Query(None),
     tipo_equipe: str = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> List[Equipe]:
+) -> dict:
     repository = EquipeRepository(db)
     filters = {}
     if codigo_equipe:
@@ -35,7 +35,8 @@ async def filtrar_equipes(
         filters["nome_equipe"] = nome_equipe
     if tipo_equipe:
         filters["tipo_equipe"] = tipo_equipe
-    return await repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    return {"res":[[str(key)+": "+str(value) for key, value in equipe.__dict__.items() if (not key.startswith("_"))] for equipe in res]}
 
 @router.get("/paginated")
 async def listar_equipes_paginadas(
