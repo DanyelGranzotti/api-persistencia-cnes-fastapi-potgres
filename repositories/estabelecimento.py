@@ -108,9 +108,13 @@ class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
 
     async def get_by_filters(self, filters: dict) -> list[Estabelecimento]:
         query = select(Estabelecimento)
+        print(filters)
         for key, value in filters.items():
+            print(key, value)
             query = query.where(getattr(Estabelecimento, key) == value)
+        print("bejhcbjhcb")
         result = await self.session.execute(query)
+        print("\n", query, "\n")
         return result.scalars().all()
 
     async def get_total_count(self) -> int:
