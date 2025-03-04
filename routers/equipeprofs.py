@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
+import logging
 
 from models.equipeprof import EquipeProf
 from repositories.equipeprofs import EquipeProfRepository
@@ -16,6 +17,7 @@ async def listar_equipeprofs(
     db: AsyncSession = Depends(get_db)
 ) -> List[EquipeProf]:
     repository = EquipeProfRepository(db)
+    logging.info("Listando equipeprofs")
     return await repository.get_all()
 
 @router.post("/", response_model=EquipeProf, status_code=201)
@@ -24,6 +26,7 @@ async def criar_equipeprof(
     db: AsyncSession = Depends(get_db)
 ) -> EquipeProf:
     repository = EquipeProfRepository(db)
+    logging.info("Criando equipeprof")
     return await repository.create(data)
 
 @router.get("/{id}", response_model=EquipeProf)
@@ -33,8 +36,11 @@ async def obter_equipeprof(
 ) -> EquipeProf:
     repository = EquipeProfRepository(db)
     equipeprof = await repository.get_by_id(id)
+    logging.info(f"Obtendo equipeprof com ID {id}")
     if not equipeprof:
+        logging.error(f"EquipeProf com ID {id} não encontrada")
         raise HTTPException(status_code=404, detail="EquipeProf não encontrada")
+    logging.info(f"EquipeProf encontrada: {equipeprof}")
     return equipeprof
 
 @router.put("/{id}", response_model=EquipeProf)
@@ -45,9 +51,14 @@ async def atualizar_equipeprof(
 ) -> EquipeProf:
     repository = EquipeProfRepository(db)
     equipeprof = await repository.get_by_id(id)
+    logging.info(f"Atualizando equipeprof com ID {id}")
     if not equipeprof:
+        logging.error(f"EquipeProf com ID {id} não encontrada")
         raise HTTPException(status_code=404, detail="EquipeProf não encontrada")
-    return await repository.update(id, data)
+    
+    equipeprof = await repository.update(id, data)
+    logging.info(f"EquipeProf atualizada: {equipeprof}")
+    return equipeprof
 
 @router.delete("/{id}", status_code=204)
 async def deletar_equipeprof(
@@ -56,33 +67,36 @@ async def deletar_equipeprof(
 ):
     repository = EquipeProfRepository(db)
     equipeprof = await repository.get_by_id(id)
+    logging.info(f"Deletando equipeprof com ID {id}")
     if not equipeprof:
+        logging.error(f"EquipeProf com ID {id} não encontrada")
         raise HTTPException(status_code=404, detail="EquipeProf não encontrada")
+    logging.info(f"EquipeProf deletada: {equipeprof}")
     await repository.delete(id)
     return
 
-@router.get("/filtro", response_model=List[EquipeProf])
+@router.get("/filtro", response_model=EquipeProf)
 async def filtrar_equipeprofs(
     equipe_id: int = Query(None),
     profissional_id: int = Query(None),
     db: AsyncSession = Depends(get_db)
-):
+) -> EquipeProf:
     repository = EquipeProfRepository(db)
     filters = {}
     if equipe_id:
         filters["equipe_id"] = equipe_id
     if profissional_id:
         filters["profissional_id"] = profissional_id
-    return await repository.get_all(filters)
+    return await repository.get_by_filters(filters)
 
-@router.get("/paginated", response_model=List[EquipeProf])
+@router.get("/paginated", response_model=EquipeProf)
 async def listar_equipeprofs_paginados(
     page: int = Query(1, ge=1),
     limit: int = Query(10, le=100),
     db: AsyncSession = Depends(get_db)
 ):
     repository = EquipeProfRepository(db)
-    total = await repository.count()
+    total = await repository.get_total_count()
     equipeprofs = await repository.get_paginated(limit=limit, offset=page * limit)
     current_page = (page // limit) + 1
     total_pages = (total // limit) + 1

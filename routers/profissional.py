@@ -68,7 +68,7 @@ async def filtrar_profissionais(
     nome_profissional: str = Query(None),
     codigo_cns: str = Query(None),
     db: AsyncSession = Depends(get_db)
-):
+) -> List[Profissional]:
     repository = ProfissionalRepository(db)
     filters = {}
     if codigo_profissional_sus:
@@ -77,7 +77,7 @@ async def filtrar_profissionais(
         filters["nome_profissional"] = nome_profissional
     if codigo_cns:
         filters["codigo_cns"] = codigo_cns
-    return await repository.get_all(filters)
+    return await repository.get_by_filters(filters)
 
 @router.get("/paginated", response_model=List[Profissional])
 async def listar_profissionais_paginados(
@@ -86,7 +86,7 @@ async def listar_profissionais_paginados(
     db: AsyncSession = Depends(get_db)
 ):
     repository = ProfissionalRepository(db)
-    total = await repository.count()
+    total = await repository.get_total_count()
     profissionais = await repository.get_paginated(limit=limit, offset=page * limit)
     current_page = (page // limit) + 1
     total_pages = (page // limit) + 1

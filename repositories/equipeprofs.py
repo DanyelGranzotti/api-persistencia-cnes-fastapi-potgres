@@ -1,10 +1,11 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from models.equipe import Equipe
 from models.profissional import Profissional
 from repositories.base import BaseRepository
 from models.equipeprof import EquipeProf
+from typing import List
 
 class EquipeProfRepository(BaseRepository[EquipeProf]):
     def __init__(self, session):
@@ -71,3 +72,20 @@ class EquipeProfRepository(BaseRepository[EquipeProf]):
         query = self.model.__table__.delete().where(self.model.id == id)
         await self.session.execute(query)
         await self
+    
+    async def get_by_filters(self, filters: dict) -> List[EquipeProf]:
+        query = select(EquipeProf)
+        for key, value in filters.items():
+            query = query.where(getattr(EquipeProf, key) == value)
+        result = await self.session.execute(query)
+        return result.scalars().all
+
+    async def get_total_count(self) -> int:
+        query = select(func.count()).select_from(EquipeProf)
+        result = await self.session.execute(query)
+        return result.scalar()
+
+    async def get_paginated(self, limit: int, offset: int) -> List[EquipeProf]:
+        query = select(EquipeProf).limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return result.scalars().all()

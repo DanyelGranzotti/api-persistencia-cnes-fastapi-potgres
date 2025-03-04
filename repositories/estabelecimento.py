@@ -1,4 +1,5 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
+from typing import List
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
@@ -104,3 +105,20 @@ class EstabelecimentoRepository(BaseRepository[Estabelecimento]):
         query = select(self.model).where(self.model.codigo_cnes == codigo)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+
+    async def get_by_filters(self, filters: dict) -> list[Estabelecimento]:
+        query = select(Estabelecimento)
+        for key, value in filters.items():
+            query = query.where(getattr(Estabelecimento, key) == value)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def get_total_count(self) -> int:
+        query = select(func.count()).select_from(Estabelecimento)
+        result = await self.session.execute(query)
+        return result.scalar()
+    
+    async def get_paginated(self, limit: int, offset: int) -> List[Estabelecimento]:
+        query = select(Estabelecimento).limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return result.scalars().all()

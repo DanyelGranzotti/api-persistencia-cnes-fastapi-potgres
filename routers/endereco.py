@@ -5,6 +5,7 @@ from core.database import get_db
 from repositories.endereco import EnderecoRepository
 from repositories.estabelecimento import EstabelecimentoRepository
 from schemas.endereco import Endereco, EnderecoCreate, EnderecoUpdate
+import logging
 
 router = APIRouter(
     prefix="/enderecos",
@@ -16,6 +17,7 @@ async def listar_enderecos(
     db: AsyncSession = Depends(get_db)
 ) -> List[Endereco]:
     repository = EnderecoRepository(db)
+    logging.info("Listando enderecos")
     return await repository.get_all()
 
 @router.get("/{id}", response_model=Endereco)
@@ -26,6 +28,7 @@ async def obter_endereco(
     repository = EnderecoRepository(db)
     endereco = await repository.get_by_id(id)
     if not endereco:
+        logging.error(f"Endereço com ID {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     return endereco
 
@@ -37,7 +40,9 @@ async def criar_endereco(
     # Primeiro, verificar se o estabelecimento existe
     estabelecimento_repo = EstabelecimentoRepository(db)
     estabelecimento = await estabelecimento_repo.get_by_id(data.estabelecimento_id)
+    logging.info(f"Estabelecimento encontrado: {estabelecimento}")
     if not estabelecimento:
+        logging.error(f"Estabelecimento com ID {data.estabelecimento_id} não encontrado")
         raise HTTPException(
             status_code=404,
             detail=f"Estabelecimento com ID {data.estabelecimento_id} não encontrado"
@@ -46,14 +51,18 @@ async def criar_endereco(
     # Verificar se já existe um endereço para este estabelecimento
     endereco_repo = EnderecoRepository(db)
     endereco_existente = await endereco_repo.get_by_estabelecimento_id(data.estabelecimento_id)
+    logging.info(f"Endereço existente: {endereco_existente}")
     if endereco_existente:
+        logging.error(f"Já existe um endereço cadastrado para o estabelecimento {data.estabelecimento_id}")
         raise HTTPException(
             status_code=400,
             detail=f"Já existe um endereço cadastrado para o estabelecimento {data.estabelecimento_id}"
         )
 
     # Se passou pelas validações, criar o endereço
+    logging.info("Endereço criado com sucesso")
     return await endereco_repo.create(data.model_dump())
+    
 
 @router.put("/{id}", response_model=Endereco)
 async def atualizar_endereco(
@@ -64,7 +73,9 @@ async def atualizar_endereco(
     # Verificar se o estabelecimento existe
     estabelecimento_repo = EstabelecimentoRepository(db)
     estabelecimento = await estabelecimento_repo.get_by_id(data.estabelecimento_id)
+    logging.info(f"Estabelecimento encontrado: {estabelecimento}")
     if not estabelecimento:
+        logging.error(f"Estabelecimento com ID {data.estabelecimento_id} não encontrado")
         raise HTTPException(
             status_code=404,
             detail=f"Estabelecimento com ID {data.estabelecimento_id} não encontrado"
@@ -73,15 +84,19 @@ async def atualizar_endereco(
     # Verificar se já existe um endereço para este estabelecimento
     endereco_repo = EnderecoRepository(db)
     endereco_existente = await endereco_repo.get_by_estabelecimento_id(data.estabelecimento_id)
+    logging.info(f"Endereço existente: {endereco_existente}")
     if endereco_existente and endereco_existente.id != id:
+        logging.error(f"Já existe um endereço cadastrado para o estabelecimento {data.estabelecimento_id}")
         raise HTTPException(
             status_code=400,
             detail=f"Já existe um endereço cadastrado para o estabelecimento {data.estabelecimento_id}"
         )
 
     # Atualizar o endereço
+    logging.info("Endereço atualizado com sucesso")
     endereco = await endereco_repo.update(id, data.model_dump())
     if not endereco:
+        logging.error(f"Endereço com ID {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     return endereco
 
@@ -92,7 +107,9 @@ async def deletar_endereco(
 ):
     repository = EnderecoRepository(db)
     success = await repository.delete(id)
+    logging.info(f"Endereço deletado com sucesso: {success}")
     if not success:
+        logging.error(f"Endereço com ID {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
     return {"message": "Endereço deletado com sucesso"}
 
@@ -102,7 +119,7 @@ async def filtrar_enderecos(
     cep_estabelecimento: str = Query(None),
     bairro: str = Query(None),
     db: AsyncSession = Depends(get_db)
-):
+) -> List[Endereco]:
     repository = EnderecoRepository(db)
     filters = {}
     if estabelecimento_id:
@@ -111,7 +128,7 @@ async def filtrar_enderecos(
         filters["cep_estabelecimento"] = cep_estabelecimento
     if bairro:
         filters["bairro"] = bairro
-    return await repository.get_all(filters)
+    return await repository.get_by_filters(filters)
 
 @router.get("/paginated", response_model=List[Endereco])
 async def listar_enderecos_paginados(
@@ -120,7 +137,7 @@ async def listar_enderecos_paginados(
     db: AsyncSession = Depends(get_db)
 ):
     repository = EnderecoRepository(db)
-    total = await repository.count()
+    total = await repository.get_total_count()
     enderecos = await repository.get_paginated(limit=limit, offset=page * limit)
     current_page = (page // limit) + 1
     total_pages = (total // limit) + 1

@@ -65,14 +65,14 @@ async def filtrar_mantenedoras(
     cnpj_mantenedora: str = Query(None),
     nome_razao_social_mantenedora: str = Query(None),
     db: AsyncSession = Depends(get_db)
-):
+) -> List[Mantenedora]:
     repository = MantenedoraRepository(db)
     filters = {}
     if cnpj_mantenedora:
         filters["cnpj_mantenedora"] = cnpj_mantenedora
     if nome_razao_social_mantenedora:
         filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
-    return await repository.get_all(filters)
+    return await repository.get_by_filters(filters)
 
 @router.get("/paginated", response_model=List[Mantenedora])
 async def listar_mantenedoras_paginadas(
@@ -81,7 +81,7 @@ async def listar_mantenedoras_paginadas(
     db: AsyncSession = Depends(get_db)
 ):
     repository = MantenedoraRepository(db)
-    total = await repository.count()
+    total = await repository.get_total_count()
     mantenedoras = await repository.get_paginated(limit=limit, offset=page * limit)
     current_page = (page // limit) + 1
     total_pages = (total // limit) + 1

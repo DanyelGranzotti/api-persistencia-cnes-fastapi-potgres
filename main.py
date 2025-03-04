@@ -1,9 +1,16 @@
 from contextlib import asynccontextmanager
+import logging
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.database import get_db, init_models, engine, Base
 from routers import equipe, estabelecimento, endereco, mantenedora, profissional
+
+logging.basicConfig(
+    filename="app.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,6 +26,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

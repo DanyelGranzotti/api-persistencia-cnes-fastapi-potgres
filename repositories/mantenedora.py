@@ -1,9 +1,10 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from repositories.base import BaseRepository
 from models.mantenedora import Mantenedora
+from typing import List
 
 class MantenedoraRepository(BaseRepository[Mantenedora]):
     def __init__(self, session):
@@ -47,3 +48,20 @@ class MantenedoraRepository(BaseRepository[Mantenedora]):
         query = self.model.__table__.delete().where(self.model.id == id)
         await self.session.execute(query)
         await self.session.flush()
+
+    async def get_by_filters(self, filters: dict) -> List[Mantenedora]:
+        query = select(Mantenedora)
+        for key, value in filters.items():
+            query = query.where(getattr(Mantenedora, key) == value)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+    
+    async def get_total_count(self) -> int:
+        query = select(func.count()).select_from(Mantenedora)
+        result = await self.session.execute(query)
+        return result.scalar()
+
+    async def get_paginated(self, limit: int, offset: int) -> List[Mantenedora]:
+        query = select(Mantenedora).limit(limit).offset(offset)
+        result = await self.session.execute(query)
+        return result.scalars().all()
