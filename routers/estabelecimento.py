@@ -23,13 +23,13 @@ async def listar_estabelecimentos(
 
 
 
-@router.get("/filtro", response_model=List[Estabelecimento])
+@router.get("/filtro")
 async def filtrar_estabelecimentos(
     codigo_unidade: str = Query(None),
     codigo_cnes: str = Query(None),
     nome_fantasia_estabelecimento: str = Query(None),
     db: AsyncSession = Depends(get_db)
-) -> List[Estabelecimento]:
+) -> dict:
     repository = EstabelecimentoRepository(db)
     filters = {}
     if codigo_unidade:
@@ -38,7 +38,10 @@ async def filtrar_estabelecimentos(
         filters["codigo_cnes"] = codigo_cnes
     if nome_fantasia_estabelecimento:
         filters["nome_fantasia_estabelecimento"] = nome_fantasia_estabelecimento
-    return repository.get_by_filters(filters)
+    res = await repository.get_by_filters(filters)
+    print(res,"\n\n")
+    return {"res":[[str(key)+": "+str(value) for key, value in estabelecimento.__dict__.items() if (not key.startswith("_"))] for estabelecimento in res]}
+    
 
 @router.get("/paginated")
 async def listar_estabelecimentos_p(
