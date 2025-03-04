@@ -34,3 +34,10 @@ class EnderecoRepository(BaseRepository[Endereco]):
         query = select(self.model).where(self.model.estabelecimento_id == estabelecimento_id)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+    
+    async def get_all(self) -> list[Endereco]:
+        print("\n Entrou no get_all de endereco \n")
+        query = select(self.model)
+        result = await self.session.execute(query)
+        print("\n Resultado do get_all de endereco \n")
+        return result.scalars().all()

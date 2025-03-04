@@ -87,8 +87,8 @@ async def create_estabelecimento_with_endereco(
                 return None
 
             # Convert latitude and longitude to float
-            latitude = float(estab_data.get("NU_LATITUDE")) if estab_data.get("NU_LATITUDE") else None
-            longitude = float(estab_data.get("NU_LONGITUDE")) if estab_data.get("NU_LONGITUDE") else None
+            latitude = str(estab_data.get("NU_LATITUDE")) if str(estab_data.get("NU_LATITUDE")) else ""
+            longitude = str(estab_data.get("NU_LONGITUDE")) if str(estab_data.get("NU_LONGITUDE")) else ""
 
             endereco = {
                 "estabelecimento_id": estab_result.id,

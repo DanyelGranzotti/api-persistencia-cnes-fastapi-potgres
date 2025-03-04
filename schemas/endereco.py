@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field, field_validator
 
 class EnderecoBase(BaseModel):
-    latitude: float | None = Field(
+    latitude: str | None = Field(
         default=None,
         example="-3.7436",
         description="Latitude do estabelecimento"
     )
-    longitude: float | None = Field(
+    longitude: str | None = Field(
         default=None,
         example="-38.5229",
         description="Longitude do estabelecimento"
