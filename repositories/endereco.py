@@ -52,3 +52,10 @@ class EnderecoRepository(BaseRepository[Endereco]):
         query = select(Endereco).limit(limit).offset((offset))
         result = await self.session.execute(query)
         return result.scalars().all()
+    
+    async def get_all(self) -> list[Endereco]:
+        print("\n Entrou no get_all de endereco \n")
+        query = select(self.model)
+        result = await self.session.execute(query)
+        print("\n Resultado do get_all de endereco \n")
+        return result.scalars().all()
