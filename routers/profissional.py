@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
-
+import logging
 from schemas.profissional import Profissional
 from repositories.profissional import ProfissionalRepository
 
@@ -17,6 +17,7 @@ async def listar_enderecos(
     db: AsyncSession = Depends(get_db)
 ) -> List[Profissional]:
     repository = ProfissionalRepository(db)
+    logging.info("Listando todos os endereços")
     return await repository.get_all()
 
 @router.post("/", response_model=Profissional, status_code=201)
@@ -25,6 +26,7 @@ async def criar_endereco(
     db: AsyncSession = Depends(get_db)
 ) -> Profissional:
     repository = ProfissionalRepository(db)
+    logging.info("Criando um novo endereço")
     return await repository.create(data)
 
 @router.get("/{id}", response_model=Profissional)
@@ -34,8 +36,11 @@ async def obter_endereco(
 ) -> Profissional:
     repository = ProfissionalRepository(db)
     endereco = await repository.get_by_id(id)
+    logging.info(f"Obtendo endereço de id {id}")
     if not endereco:
+        logging.error(f"Endereço de id {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
+    logging.info(f"Endereço encontrado: {endereco}")
     return endereco
 
 @router.put("/{id}", response_model=Profissional)
@@ -46,9 +51,14 @@ async def atualizar_endereco(
 ) -> Profissional:
     repository = ProfissionalRepository(db)
     endereco = await repository.get_by_id(id)
+    logging.info(f"Atualizando endereço de id {id}")
     if not endereco:
+        logging.error(f"Endereço de id {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
-    return await repository.update(id, data)
+    logging.info(f"Endereço encontrado: {endereco}")
+    prof = await repository.update(id, data)
+    logging.info(f"Endereço atualizado: {prof}")
+    return prof
 
 @router.delete("/{id}", status_code=204)
 async def deletar_endereco(
@@ -57,9 +67,13 @@ async def deletar_endereco(
 ):
     repository = ProfissionalRepository(db)
     endereco = await repository.get_by_id(id)
+    logging.info(f"Deletando endereço de id {id}")
     if not endereco:
+        logging.error(f"Endereço de id {id} não encontrado")
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
+    logging.info(f"Endereço encontrado: {endereco}")
     await repository
+    logging.info(f"Endereço de id {id} deletado com sucesso")
     return
 
 @router.get("/filtro", response_model=List[Profissional])

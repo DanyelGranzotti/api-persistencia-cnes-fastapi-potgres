@@ -4,6 +4,7 @@ from typing import List
 from core.database import get_db
 from repositories.mantenedora import MantenedoraRepository
 from schemas.mantenedora import Mantenedora, MantenedoraCreate, MantenedoraUpdate
+import logging
 
 router = APIRouter(
     prefix="/mantenedoras",
@@ -15,6 +16,7 @@ async def listar_mantenedoras(
     db: AsyncSession = Depends(get_db)
 ) -> List[Mantenedora]:
     repository = MantenedoraRepository(db)
+    logging.info("Listando mantenedoras")
     return await repository.get_all()
 
 @router.post("/", response_model=Mantenedora, status_code=201)
@@ -23,6 +25,7 @@ async def criar_mantenedora(
     db: AsyncSession = Depends(get_db)
 ) -> Mantenedora:
     repository = MantenedoraRepository(db)
+    logging.info("Criando mantenedora")
     return await repository.create(data.model_dump())
 
 @router.get("/{id}", response_model=Mantenedora)
@@ -32,8 +35,11 @@ async def obter_mantenedora(
 ) -> Mantenedora:
     repository = MantenedoraRepository(db)
     mantenedora = await repository.get_by_id(id)
+    logging.info(f"Obtendo mantenedora de id {id}")
     if not mantenedora:
+        logging.error(f"Mantenedora de id {id} não encontrada")
         raise HTTPException(status_code=404, detail="Mantenedora não encontrada")
+    logging.info(f"Mantenedora de id {id} encontrada")
     return mantenedora
 
 @router.put("/{id}", response_model=Mantenedora)
@@ -44,9 +50,14 @@ async def atualizar_mantenedora(
 ) -> Mantenedora:
     repository = MantenedoraRepository(db)
     mantenedora = await repository.get_by_id(id)
+    logging.info(f"Atualizando mantenedora de id {id}")
     if not mantenedora:
+        logging.error(f"Mantenedora de id {id} não encontrada")
         raise HTTPException(status_code=404, detail="Mantenedora não encontrada")
-    return await repository.update(id, data.model_dump())
+    logging.info(f"Mantenedora de id {id} encontrada")
+    mantenedora = await repository.update(id, data.model_dump())
+    logging.info(f"Mantenedora de id {id} atualizada")
+    return mantenedora
 
 @router.delete("/{id}", status_code=204)
 async def deletar_mantenedora(
@@ -55,8 +66,12 @@ async def deletar_mantenedora(
 ):
     repository = MantenedoraRepository(db)
     mantenedora = await repository.get_by_id(id)
+    logging.info(f"Deletando mantenedora de id {id}")
     if not mantenedora:
+        logging.error(f"Mantenedora de id {id} não encontrada")
         raise HTTPException(status_code=404, detail="Mantenedora não encontrada")
+    logging.info(f"Mantenedora de id {id} encontrada")
+    logging.info(f"Mantenedora de id {id} deletada")
     await repository.delete(id)
     return
 
