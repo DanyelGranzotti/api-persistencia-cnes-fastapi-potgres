@@ -20,6 +20,43 @@ async def listar_equipes(
     logging.info("Listando equipes")
     return await repository.get_all()
 
+@router.get("/filtro", response_model=List[Equipe])
+async def filtrar_equipes(
+    codigo_equipe: str = Query(None),
+    nome_equipe: str = Query(None),
+    tipo_equipe: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+) -> List[Equipe]:
+    repository = EquipeRepository(db)
+    filters = {}
+    if codigo_equipe:
+        filters["codigo_equipe"] = codigo_equipe
+    if nome_equipe:
+        filters["nome_equipe"] = nome_equipe
+    if tipo_equipe:
+        filters["tipo_equipe"] = tipo_equipe
+    return await repository.get_by_filters(filters)
+
+@router.get("/paginated", response_model=dict)
+async def listar_equipes_paginadas(
+    page: int = Query(0, ge=0),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeRepository(db)
+    total = await repository.get_total_count()
+    equipes = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
+    total_pages = (total + limit - 1) // limit
+    return {
+        "data": equipes,
+        "pagination": {
+            "total_pages": total_pages,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }
+
 @router.post("/", response_model=Equipe, status_code=201)
 async def criar_equipe(
     data: Equipe,
@@ -92,40 +129,3 @@ async def obter_equipe_com_profissionais(
         raise HTTPException(status_code=404, detail="Equipe não encontrada")
     logging.info(f"Equipe com ID {id} e seus profissionais obtida")
     return equipe
-
-@router.get("/filtro", response_model=List[Equipe])
-async def filtrar_equipes(
-    codigo_equipe: str = Query(None),
-    nome_equipe: str = Query(None),
-    tipo_equipe: str = Query(None),
-    db: AsyncSession = Depends(get_db)
-) -> List[Equipe]:
-    repository = EquipeRepository(db)
-    filters = {}
-    if codigo_equipe:
-        filters["codigo_equipe"] = codigo_equipe
-    if nome_equipe:
-        filters["nome_equipe"] = nome_equipe
-    if tipo_equipe:
-        filters["tipo_equipe"] = tipo_equipe
-    return await repository.get_by_filters(filters)
-
-@router.get("/paginated", response_model=dict)
-async def listar_equipes_paginadas(
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, le=100),
-    db: AsyncSession = Depends(get_db)
-):
-    repository = EquipeRepository(db)
-    total = await repository.get_total_count()
-    equipes = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
-    total_pages = (total + limit - 1) // limit
-    return {
-        "data": equipes,
-        "pagination": {
-            "total_pages": total_pages,
-            "total": total,
-            "offset": page,
-            "limit": limit
-        }
-    }

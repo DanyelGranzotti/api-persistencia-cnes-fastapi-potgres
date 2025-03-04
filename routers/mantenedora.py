@@ -19,6 +19,40 @@ async def listar_mantenedoras(
     logging.info("Listando mantenedoras")
     return await repository.get_all()
 
+@router.get("/filtro", response_model=List[Mantenedora])
+async def filtrar_mantenedoras(
+    cnpj_mantenedora: str = Query(None),
+    nome_razao_social_mantenedora: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+) -> List[Mantenedora]:
+    repository = MantenedoraRepository(db)
+    filters = {}
+    if cnpj_mantenedora:
+        filters["cnpj_mantenedora"] = cnpj_mantenedora
+    if nome_razao_social_mantenedora:
+        filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
+    return await repository.get_by_filters(filters)
+
+@router.get("/paginated", response_model=dict)
+async def listar_mantenedoras_paginadas(
+    page: int = Query(0, ge=0),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = MantenedoraRepository(db)
+    total = await repository.get_total_count()
+    mantenedoras = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
+    total_pages = (total + limit - 1) // limit
+    return {
+        "data": mantenedoras,
+        "pagination": {
+            "total_pages": total_pages,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }
+
 @router.post("/", response_model=Mantenedora, status_code=201)
 async def criar_mantenedora(
     data: MantenedoraCreate,
@@ -74,39 +108,3 @@ async def deletar_mantenedora(
     logging.info(f"Mantenedora de id {id} deletada")
     await repository.delete(id)
     return
-
-@router.get("/filtro", response_model=List[Mantenedora])
-async def filtrar_mantenedoras(
-    cnpj_mantenedora: str = Query(None),
-    nome_razao_social_mantenedora: str = Query(None),
-    db: AsyncSession = Depends(get_db)
-) -> List[Mantenedora]:
-    repository = MantenedoraRepository(db)
-    filters = {}
-    if cnpj_mantenedora:
-        filters["cnpj_mantenedora"] = cnpj_mantenedora
-    if nome_razao_social_mantenedora:
-        filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
-    return await repository.get_by_filters(filters)
-
-@router.get("/paginated", response_model=List[Mantenedora])
-async def listar_mantenedoras_paginadas(
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, le=100),
-    db: AsyncSession = Depends(get_db)
-):
-    repository = MantenedoraRepository(db)
-    total = await repository.get_total_count()
-    mantenedoras = await repository.get_paginated(limit=limit, offset=page * limit)
-    current_page = (page // limit) + 1
-    total_pages = (total // limit) + 1
-    return {
-        "data": mantenedoras,
-        "pagination": {
-            "total_pages": total_pages,
-            "current_page": current_page,
-            "total": total,
-            "offset": page,
-            "limit": limit
-        }
-    }

@@ -20,6 +20,43 @@ async def listar_enderecos(
     logging.info("Listando todos os endereços")
     return await repository.get_all()
 
+@router.get("/filtro", response_model=List[Profissional])
+async def filtrar_profissionais(
+    codigo_profissional_sus: str = Query(None),
+    nome_profissional: str = Query(None),
+    codigo_cns: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+) -> List[Profissional]:
+    repository = ProfissionalRepository(db)
+    filters = {}
+    if codigo_profissional_sus:
+        filters["codigo_profissional_sus"] = codigo_profissional_sus
+    if nome_profissional:
+        filters["nome_profissional"] = nome_profissional
+    if codigo_cns:
+        filters["codigo_cns"] = codigo_cns
+    return await repository.get_by_filters(filters)
+
+@router.get("/paginated", response_model=dict)
+async def listar_profissionais_paginados(
+    page: int = Query(0, ge=0),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = ProfissionalRepository(db)
+    total = await repository.get_total_count()
+    profissionais = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
+    total_pages = (total + limit - 1) // limit
+    return {
+        "data": profissionais,
+        "pagination": {
+            "total_pages": total_pages,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }
+
 @router.post("/", response_model=Profissional, status_code=201)
 async def criar_endereco(
     data: Profissional,
@@ -75,42 +112,3 @@ async def deletar_endereco(
     await repository
     logging.info(f"Endereço de id {id} deletado com sucesso")
     return
-
-@router.get("/filtro", response_model=List[Profissional])
-async def filtrar_profissionais(
-    codigo_profissional_sus: str = Query(None),
-    nome_profissional: str = Query(None),
-    codigo_cns: str = Query(None),
-    db: AsyncSession = Depends(get_db)
-) -> List[Profissional]:
-    repository = ProfissionalRepository(db)
-    filters = {}
-    if codigo_profissional_sus:
-        filters["codigo_profissional_sus"] = codigo_profissional_sus
-    if nome_profissional:
-        filters["nome_profissional"] = nome_profissional
-    if codigo_cns:
-        filters["codigo_cns"] = codigo_cns
-    return await repository.get_by_filters(filters)
-
-@router.get("/paginated", response_model=List[Profissional])
-async def listar_profissionais_paginados(
-    page: int = Query(1),
-    limit: int = Query(10),
-    db: AsyncSession = Depends(get_db)
-):
-    repository = ProfissionalRepository(db)
-    total = await repository.get_total_count()
-    profissionais = await repository.get_paginated(limit=limit, offset=page * limit)
-    current_page = (page // limit) + 1
-    total_pages = (page // limit) + 1
-    return {
-        "data": profissionais,
-        "pagination": {
-            "total_pages": total_pages,
-            "current_page": current_page,
-            "total": total,
-            "offset": page,
-            "limit": limit
-        }
-    }
