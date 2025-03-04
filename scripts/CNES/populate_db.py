@@ -13,26 +13,7 @@ from repositories.endereco import EnderecoRepository
 from repositories.profissional import ProfissionalRepository
 
 def read_csv_file(file_path: str) -> List[Dict]:
-    encodings = ['utf-8', 'latin1', 'iso-8859-1', 'cp1252']
-    
     return pd.read_csv(file_path, sep=';', dtype="str", encoding='latin1', lineterminator="\n").to_dict(orient='records')
-    # for encoding in encodings:
-    #     try:
-    #         data = []
-    #         with open(file_path, 'r', encoding=encoding) as file:
-    #             reader = csv.reader(file, delimiter=';', quotechar='"')
-    #             headers = next(reader)  # Skip header row
-                
-    #             for row in reader:
-    #                 record = {}
-    #                 for index, value in enumerate(row):
-    #                     record[headers[index]] = value.strip() if value else None
-    #                 data.append(record)
-    #         return data
-    #     except UnicodeDecodeError:
-    #         continue
-    
-    # raise ValueError(f"Could not read file {file_path} with any of the attempted encodings")
 
 async def create_mantenedora(repo: MantenedoraRepository, data: Dict) -> Dict:
     try:
