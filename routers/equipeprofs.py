@@ -20,6 +20,40 @@ async def listar_equipeprofs(
     logging.info("Listando equipeprofs")
     return await repository.get_all()
 
+@router.get("/filtro", response_model=EquipeProf)
+async def filtrar_equipeprofs(
+    equipe_id: int = Query(None),
+    profissional_id: int = Query(None),
+    db: AsyncSession = Depends(get_db)
+) -> EquipeProf:
+    repository = EquipeProfRepository(db)
+    filters = {}
+    if equipe_id:
+        filters["equipe_id"] = equipe_id
+    if profissional_id:
+        filters["profissional_id"] = profissional_id
+    return await repository.get_by_filters(filters)
+
+@router.get("/paginated", response_model=dict)
+async def listar_equipeprofs_paginados(
+    page: int = Query(0, ge=0),
+    limit: int = Query(10, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    repository = EquipeProfRepository(db)
+    total = await repository.get_total_count()
+    equipeprofs = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
+    total_pages = (total + limit - 1) // limit
+    return {
+        "data": equipeprofs,
+        "pagination": {
+            "total_pages": total_pages,
+            "total": total,
+            "offset": page,
+            "limit": limit
+        }
+    }
+
 @router.post("/", response_model=EquipeProf, status_code=201)
 async def criar_equipeprof(
     data: EquipeProf,
@@ -74,39 +108,3 @@ async def deletar_equipeprof(
     logging.info(f"EquipeProf deletada: {equipeprof}")
     await repository.delete(id)
     return
-
-@router.get("/filtro", response_model=EquipeProf)
-async def filtrar_equipeprofs(
-    equipe_id: int = Query(None),
-    profissional_id: int = Query(None),
-    db: AsyncSession = Depends(get_db)
-) -> EquipeProf:
-    repository = EquipeProfRepository(db)
-    filters = {}
-    if equipe_id:
-        filters["equipe_id"] = equipe_id
-    if profissional_id:
-        filters["profissional_id"] = profissional_id
-    return await repository.get_by_filters(filters)
-
-@router.get("/paginated", response_model=EquipeProf)
-async def listar_equipeprofs_paginados(
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, le=100),
-    db: AsyncSession = Depends(get_db)
-):
-    repository = EquipeProfRepository(db)
-    total = await repository.get_total_count()
-    equipeprofs = await repository.get_paginated(limit=limit, offset=page * limit)
-    current_page = (page // limit) + 1
-    total_pages = (total // limit) + 1
-    return {
-        "data": equipeprofs,
-        "pagination": {
-            "total_pages": total_pages,
-            "current_page": current_page,
-            "total": total,
-            "offset": page,
-            "limit": limit
-        }
-    }

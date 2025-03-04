@@ -44,11 +44,28 @@ async def listar_estabelecimentos_p(
         }
     }
 
+@router.get("/filtro", response_model=List[Estabelecimento])
+async def filtrar_estabelecimentos(
+    codigo_unidade: str = Query(None),
+    codigo_cnes: str = Query(None),
+    nome_fantasia_estabelecimento: str = Query(None),
+    db: AsyncSession = Depends(get_db)
+) -> List[Estabelecimento]:
+    repository = EstabelecimentoRepository(db)
+    filters = {}
+    if codigo_unidade:
+        filters["codigo_unidade"] = codigo_unidade
+    if codigo_cnes:
+        filters["codigo_cnes"] = codigo_cnes
+    if nome_fantasia_estabelecimento:
+        filters["nome_fantasia_estabelecimento"] = nome_fantasia_estabelecimento
+    return repository.get_by_filters(filters)
+
+@router.get("/{id}", response_model=Estabelecimento)
 async def obter_estabelecimento(
     id: int, 
     db: AsyncSession = Depends(get_db)
 ) -> Estabelecimento:
-
     repository = EstabelecimentoRepository(db)
     estabelecimento = await repository.get_by_id_with_endereco(id)
     logging.info(f"Estabelecimento encontrado: {estabelecimento}")
@@ -104,22 +121,3 @@ async def deletar_estabelecimento(
         )
     logging.info(f"Estabelecimento com ID {id} deletado com sucesso")
     return {"message": EstabelecimentoError.DELETED}
-
-@router.get("/filtro", response_model=List[Estabelecimento])
-async def filtrar_estabelecimentos(
-    codigo_unidade: str = Query(None),
-    codigo_cnes: str = Query(None),
-    nome_fantasia_estabelecimento: str = Query(None),
-    db: AsyncSession = Depends(get_db)
-) -> List[Estabelecimento]:
-    repository = EstabelecimentoRepository(db)
-    filters = {}
-    if codigo_unidade:
-        filters["codigo_unidade"] = codigo_unidade
-    if codigo_cnes:
-        filters["codigo_cnes"] = codigo_cnes
-    if nome_fantasia_estabelecimento:
-        filters["nome_fantasia_estabelecimento"] = nome_fantasia_estabelecimento
-    return repository.get_by_filters(filters)
-
-
