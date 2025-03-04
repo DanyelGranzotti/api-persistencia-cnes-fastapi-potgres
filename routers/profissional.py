@@ -40,13 +40,14 @@ async def filtrar_profissionais(
 @router.get("/paginated", response_model=dict)
 async def listar_profissionais_paginados(
     page: int = Query(0, ge=0),
-    limit: int = Query(10, le=100),
+    limit: int = Query(10, ge=1),
     db: AsyncSession = Depends(get_db)
-):
+) -> dict:
     repository = ProfissionalRepository(db)
     total = await repository.get_total_count()
-    profissionais = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
-    total_pages = (total + limit - 1) // limit
+    profissionais = await repository.get_paginated(limit=limit, offset=page * limit)
+    total_pages = (total // limit) + 1
+    profissionais = [[str(key)+": "+str(value) for key, value in profissional.__dict__.items()] for profissional in profissionais]
     return {
         "data": profissionais,
         "pagination": {

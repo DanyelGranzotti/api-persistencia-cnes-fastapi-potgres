@@ -33,16 +33,17 @@ async def filtrar_mantenedoras(
         filters["nome_razao_social_mantenedora"] = nome_razao_social_mantenedora
     return await repository.get_by_filters(filters)
 
-@router.get("/paginated", response_model=dict)
+@router.get("/paginated")
 async def listar_mantenedoras_paginadas(
     page: int = Query(0, ge=0),
-    limit: int = Query(10, le=100),
+    limit: int = Query(10, ge=1),
     db: AsyncSession = Depends(get_db)
-):
+) -> dict:
     repository = MantenedoraRepository(db)
     total = await repository.get_total_count()
-    mantenedoras = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
-    total_pages = (total + limit - 1) // limit
+    mantenedoras = await repository.get_paginated(limit=limit, offset=page * limit)
+    total_pages = (total // limit) + 1
+    mantenedoras = [[str(key)+": "+str(value) for key, value in mantenedora.__dict__.items()] for mantenedora in mantenedoras]
     return {
         "data": mantenedoras,
         "pagination": {

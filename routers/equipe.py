@@ -37,16 +37,17 @@ async def filtrar_equipes(
         filters["tipo_equipe"] = tipo_equipe
     return await repository.get_by_filters(filters)
 
-@router.get("/paginated", response_model=dict)
+@router.get("/paginated")
 async def listar_equipes_paginadas(
     page: int = Query(0, ge=0),
-    limit: int = Query(10, le=100),
+    limit: int = Query(10, ge=1),
     db: AsyncSession = Depends(get_db)
-):
+) -> dict:
     repository = EquipeRepository(db)
     total = await repository.get_total_count()
-    equipes = await repository.get_paginated(limit=limit, offset=(page - 1) * limit)
-    total_pages = (total + limit - 1) // limit
+    equipes = await repository.get_paginated(limit=limit, offset=page * limit)
+    total_pages = (total // limit) + 1
+    equipes = [[str(key)+": "+str(value) for key, value in equipe.__dict__.items()] for equipe in equipes]
     return {
         "data": equipes,
         "pagination": {
