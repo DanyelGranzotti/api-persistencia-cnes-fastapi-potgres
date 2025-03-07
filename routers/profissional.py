@@ -13,11 +13,11 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[Profissional])
-async def listar_enderecos(
+async def listar_profissionals(
     db: AsyncSession = Depends(get_db)
 ) -> List[Profissional]:
     repository = ProfissionalRepository(db)
-    logging.info("Listando todos os endereços")
+    logging.info("Listando todos os profissionais")
     return await repository.get_all()
 
 @router.get("/filtro")
@@ -60,57 +60,57 @@ async def listar_profissionais_paginados(
     }
 
 @router.post("/", response_model=Profissional, status_code=201)
-async def criar_endereco(
+async def criar_profissional(
     data: Profissional,
     db: AsyncSession = Depends(get_db)
 ) -> Profissional:
     repository = ProfissionalRepository(db)
-    logging.info("Criando um novo endereço")
+    logging.info("Criando um novo profissional")
     return await repository.create(data)
 
 @router.get("/{id}", response_model=Profissional)
-async def obter_endereco(
+async def obter_profissional(
     id: int,
     db: AsyncSession = Depends(get_db)
 ) -> Profissional:
     repository = ProfissionalRepository(db)
-    endereco = await repository.get_by_id(id)
-    logging.info(f"Obtendo endereço de id {id}")
-    if not endereco:
-        logging.error(f"Endereço de id {id} não encontrado")
-        raise HTTPException(status_code=404, detail="Endereço não encontrado")
-    logging.info(f"Endereço encontrado: {endereco}")
-    return endereco
+    profissional = await repository.get_by_id(id)
+    logging.info(f"Obtendo profissional de id {id}")
+    if not profissional:
+        logging.error(f"Profissional de id {id} não encontrado")
+        raise HTTPException(status_code=404, detail="Profissional não encontrado")
+    logging.info(f"Profissional encontrado: {profissional}")
+    return profissional
 
 @router.put("/{id}", response_model=Profissional)
-async def atualizar_endereco(
+async def atualizar_profissional(
     id: int,
     data: Profissional,
     db: AsyncSession = Depends(get_db)
 ) -> Profissional:
     repository = ProfissionalRepository(db)
-    endereco = await repository.get_by_id(id)
-    logging.info(f"Atualizando endereço de id {id}")
-    if not endereco:
-        logging.error(f"Endereço de id {id} não encontrado")
-        raise HTTPException(status_code=404, detail="Endereço não encontrado")
-    logging.info(f"Endereço encontrado: {endereco}")
+    profissional = await repository.get_by_id(id)
+    logging.info(f"Atualizando profissional de id {id}")
+    if not profissional:
+        logging.error(f"Profissional de id {id} não encontrado")
+        raise HTTPException(status_code=404, detail="Profissional não encontrado")
+    logging.info(f"Profissional encontrado: {profissional}")
     prof = await repository.update(id, data)
-    logging.info(f"Endereço atualizado: {prof}")
+    logging.info(f"Profissional atualizado: {prof}")
     return prof
 
 @router.delete("/{id}", status_code=204)
-async def deletar_endereco(
+async def deletar_profissional(
     id: int,
     db: AsyncSession = Depends(get_db)
 ):
     repository = ProfissionalRepository(db)
-    endereco = await repository.get_by_id(id)
-    logging.info(f"Deletando endereço de id {id}")
-    if not endereco:
-        logging.error(f"Endereço de id {id} não encontrado")
-        raise HTTPException(status_code=404, detail="Endereço não encontrado")
-    logging.info(f"Endereço encontrado: {endereco}")
+    profissional = await repository.get_by_id(id)
+    logging.info(f"Deletando profissional de id {id}")
+    if not profissional:
+        logging.error(f"Profissional de id {id} não encontrado")
+        raise HTTPException(status_code=404, detail="Profissional não encontrado")
+    logging.info(f"Profissional encontrado: {profissional}")
     await repository
-    logging.info(f"Endereço de id {id} deletado com sucesso")
+    logging.info(f"Profissional de id {id} deletado com sucesso")
     return
