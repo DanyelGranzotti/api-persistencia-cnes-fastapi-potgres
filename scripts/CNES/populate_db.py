@@ -116,7 +116,7 @@ async def create_profissional(profRepo: ProfissionalRepository, data: Dict) -> D
         profissional = {
             "codigo_profissional_sus": str(data["CO_PROFISSIONAL_SUS"]),
             "nome_profissional": data["NO_PROFISSIONAL"],
-            "codido_cns": str(data["CO_CNS"]),
+            "codigo_cns": str(data["CO_CNS"]),
             "situacao_profissional_cadsus": str(data["ST_NMPROF_CADSUS"]),
         }
 

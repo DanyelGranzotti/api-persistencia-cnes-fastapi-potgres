@@ -13,7 +13,7 @@ class ProfissionalBase(BaseModel):
         max_length=255,
         description="Nome do profissional"
     )
-    codido_cns: str = Field(
+    codigo_cns: str = Field(
         example="123456",
         min_length=1,
         max_length=20,
